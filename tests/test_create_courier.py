@@ -10,9 +10,11 @@ class TestCreateCourier:
     @allure.title("Успешное создание курьера")
     def test_create_courier_success(self):
         courier_data = generate_unique_user()
-        response = requests.post(BASE_URL + Endpoints.CREATE_COURIER_EP, json=courier_data)
-        assert response.status_code == 201
-        assert response.json()["ok"] == True
+        with allure.step("Отправка запроса на создание курьера"):
+            response = requests.post(BASE_URL + Endpoints.CREATE_COURIER_EP, json=courier_data)
+        with allure.step("Проверка ответа"):
+            assert response.status_code == 201
+            assert response.json()["ok"] is True
 
     @allure.title("Ошибка при создании курьера с существующим логином")
     def test_create_duplicate_courier(self, courier):
@@ -21,20 +23,24 @@ class TestCreateCourier:
             "password": "different_password",
             "firstName": "different_name"
         }
-        response = requests.post(BASE_URL + Endpoints.CREATE_COURIER_EP, json=duplicate_data)
-        assert response.status_code == 409
-        assert "message" in response.json()
-        assert response.json()["message"] == "Этот логин уже используется. Попробуйте другой."
+        with allure.step("Отправка запроса на создание курьера с существующим логином"):
+            response = requests.post(BASE_URL + Endpoints.CREATE_COURIER_EP, json=duplicate_data)
+        with allure.step("Проверка ответа на дублирование логина"):
+            assert response.status_code == 409
+            assert "message" in response.json()
+            assert response.json()["message"] == "Этот логин уже используется. Попробуйте другой."
 
     @allure.title("Ошибка при создании курьера без обязательного поля")
     @pytest.mark.parametrize("missing_field", ["login", "password"])
     def test_create_courier_missing_required_field(self, missing_field):
         courier_data = generate_unique_user()
         courier_data.pop(missing_field)
-        response = requests.post(BASE_URL + Endpoints.CREATE_COURIER_EP, json=courier_data)
-        assert response.status_code == 400
-        assert "message" in response.json()
-        assert response.json()["message"] == "Недостаточно данных для создания учетной записи"
+        with allure.step(f"Отправка запроса на создание курьера без поля: {missing_field}"):
+            response = requests.post(BASE_URL + Endpoints.CREATE_COURIER_EP, json=courier_data)
+        with allure.step("Проверка ответа на недостаток данных"):
+            assert response.status_code == 400
+            assert "message" in response.json()
+            assert response.json()["message"] == "Недостаточно данных для создания учетной записи"
 
     @allure.title("Ошибка при создании курьера с одинаковым логином и разным паролем")
     def test_create_courier_same_login_different_password(self, courier):
@@ -43,7 +49,9 @@ class TestCreateCourier:
             "password": "different_password",
             "firstName": "different_name"
         }
-        response = requests.post(BASE_URL + Endpoints.CREATE_COURIER_EP, json=duplicate_data)
-        assert response.status_code == 409
-        assert "message" in response.json()
-        assert response.json()["message"] == "Этот логин уже используется. Попробуйте другой."
+        with allure.step("Отправка запроса на создание курьера с одинаковым логином"):
+            response = requests.post(BASE_URL + Endpoints.CREATE_COURIER_EP, json=duplicate_data)
+        with allure.step("Проверка ответа на дублирование логина"):
+            assert response.status_code == 409
+            assert "message" in response.json()
+            assert response.json()["message"] == "Этот логин уже используется. Попробуйте другой."

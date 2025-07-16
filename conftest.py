@@ -4,7 +4,7 @@ import pytest
 import requests
 from urls import BASE_URL
 from endpoints import Endpoints
-from helpers import register_new_courier_and_return_login_password, delete_courier, generate_unique_user
+from helpers import register_new_courier_and_return_login_password, delete_courier
 from data import TestData
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -17,14 +17,6 @@ def courier_credentials():
     """
     login, password = register_new_courier_and_return_login_password()
     return {"login": login, "password": password}
-
-
-@pytest.fixture
-def order_payload():
-    """
-    Фикстура для создания тестового заказа
-    """
-    return TestData.ORDER_DATA
 
 
 @pytest.fixture
@@ -47,9 +39,25 @@ def courier():
     delete_courier(courier_id)
 
 
-@pytest.fixture
-def order_data():
+def test_order_creation_with_payload(courier):
     """
-    Фикстура для получения альтернативных данных заказа
+    Тест для создания заказа с обычными данными
     """
-    return TestData.ALTERNATIVE_ORDER_DATA
+    # Создаем заказ непосредственно в тесте
+    order_payload = TestData.ORDER_DATA
+    response = requests.post(BASE_URL + Endpoints.CREATE_ORDER_EP, json=order_payload)
+
+    assert response.status_code == 201
+    assert "id" in response.json()
+
+
+def test_order_creation_with_alternative_data(courier):
+    """
+    Тест для создания заказа с альтернативными данными
+    """
+    # Создаем заказ с альтернативными данными непосредственно в тесте
+    order_data = TestData.ALTERNATIVE_ORDER_DATA
+    response = requests.post(BASE_URL + Endpoints.CREATE_ORDER_EP, json=order_data)
+
+    assert response.status_code == 201
+    assert "id" in response.json()
